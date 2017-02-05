@@ -1,0 +1,67 @@
+"""
+Students can put comments in this main docstring. Such comments will be
+ important for you (and your teammates in the group project) to remember
+ what your definition block does.
+"""
+from scipy import *
+import sys
+def standard_atmo(h = 12000): 
+    """
+    {'username':'figuero0','assignment':'The Standard Atmosphere Intermediate Mastery','course':'fall-2016-aae-251','variables':
+    {'h':'geopotential altitude, m',
+     'T':'temperature at h, K',
+     'rho':'density at h, kg/m^3',
+     'p':'pressure at h, Pa'}}
+    """
+
+    # Atmosphere data - do not change!
+    T_set = [288.16,216.66,216.66,282.66,282.66,165.66,165.66,225.66] # list (array) of temperature points that define endpoints of each layer (starting at the ground), K
+    h_set = [0,11000,25000,47000,53000,79000,90000,105000] # list (array) of altitude points that define endpoints of each layer (starting at the ground), m
+    a_set = [-6.5*10**-3,0,3*10**-3,0,-4.5*10**-3,0,4*10**-3] # list (array) of gradient layer slopes (starting at the ground), K/m
+
+    ########
+    r_con = 287 #r constant
+    gravity = 9.8 #acceleration due to gravity   
+    p_base= 1.01e5 #sea level pressure
+    P = 1.01e5 #sea level pressure
+    rho_base = 1.23 #sea level density    
+    rho = 1.23  #sea level density
+    T = T_set[0] #sea level temperature 
+    count = 0  #local control variable
+    e = 2.718281828 #e exponent so that math does not need to be imported
+    x = int(input('Please enter 1 for English units or 2 for metric units: '))
+    if x == 1:
+         h = h * 0.3048
+    while (h > h_set[count]):
+         if count % 2:
+             p_base = p_base * (T_set[count] / T_set[count - 1])**-(gravity / ((a_set[count - 1]) * r_con))                      
+             rho_base = rho_base * (T_set[count] / T_set[count - 1])**-((gravity / (a_set[count - 1] * r_con)) + 1)
+             T = T_set[count]
+             P = p_base * e**((-(gravity / (r_con * T)) * (h - h_set[count])))
+             rho = (P / p_base) * rho_base
+             #print("T = %s P = %s rho = %s r_base = %s p_base = %s\n" % (T, P, rho, rho_base, p_base))
+         else:
+             if count > 0:                  
+                 p_base2 = p_base * e**(((-gravity / (r_con * T_set[count])) * (h_set[count] - h_set[count - 1]))) 
+                 rho_base = (p_base2 / p_base) * rho_base
+                 T = T_set[count] + a_set[count] * (h - h_set[count])
+                 P = p_base2 * (T / T_set[count])**-(gravity / (a_set[count] * r_con))
+                 rho = rho_base * (T / T_set[count])**-((gravity / (a_set[count] * r_con)) + 1)
+             else:
+                 T = T_set[count] + a_set[count] * (h - h_set[count])
+                 P = p_base * (T / T_set[count])**-(gravity / (a_set[count] * r_con))
+                 rho = rho_base * (T / T_set[count])**-((gravity / (a_set[count] * r_con)) + 1)
+                 #print("T = %s P = %s rho = %s r_base = %s p_base = %s\n" % (T, P, rho, rho_base, p_base))
+         count = count + 1
+    if x == 1:    
+         T = T * (9/ 5)
+         P = P / 47.88025889
+         rho = rho / 515.3789066
+    print("T = %s P = %s rho = %s" %(T, P, rho))
+    p = P
+    return T, rho, p
+    ### Slug in this context is a unit of mass that accelerates at by 1ft/s^2. A slug is a useful measure of mass in the English
+    #system because it makes conversions between SI and English relatable and overall makes calculating force/density in English easier.
+# The following allows you to run the script directly from the command line
+if __name__ == '__main__':
+    standard_atmo(*[float(val) for val in sys.argv[1:]])
